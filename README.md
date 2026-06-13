@@ -1,1 +1,2 @@
-# pattern_recogn
+# Collection of Projects made for the pattern recognition class
+
