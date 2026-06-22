@@ -6,7 +6,7 @@ from scipy.stats import pearsonr
 
 
 class Acquisition:
-    DATA_PATH = "data/sensor_readings_4.data"
+    DATA_PATH = "./data/sensor_readings_4.data"
     COL_NAMES = ['SD_front', 'SD_left','SD_right','SD_back', 'Class']
     def __init__(self, path:str = DATA_PATH, names= COL_NAMES):
         self.df_raw = pd.read_csv(path,header=None, names=names)
@@ -30,16 +30,19 @@ class Acquisition:
             df_raw = self.df_raw
         self._plot_hist()
         plt.savefig("results/feature_histograms",dpi=150)
+        plt.close()
         if plot:
             plt.show()
 
         self._pairplot_matrix()
         plt.savefig("results/pairplot_features",dpi=150)
+        plt.close()
         if plot:
             plt.show()
 
         self._correlation_matrix()
         plt.savefig("results/correlation_matrix",dpi=150)
+        plt.close()
         if plot:
             plt.show()
 
