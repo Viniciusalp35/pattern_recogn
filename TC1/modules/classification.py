@@ -29,11 +29,9 @@ class KNN:
         array = np.array(array)
         labels=np.take(array,axis=axis,indices=np.arange(array.shape[axis]))
         labels = labels.flatten()
+        get_method = dict_frequent.get
         for l in labels:
-            if l in dict_frequent:
-                dict_frequent[l] +=1
-            else:
-                dict_frequent[l] = 1
+            dict_frequent[l] = get_method(l,0) + 1
         
         max_key = max(dict_frequent,key=dict_frequent.get)
         return max_key
@@ -67,9 +65,10 @@ class KNN:
             y_test = np.array(y_test)
             #print(f"--------- CLASSIFIER STATISTICS KNN FOR K = {self.k} and M = {m} -----------")
             truth_dataframe = self._comparator(predicted,y_test)
-            acc = (np.array(truth_dataframe.iloc[0,:])/np.sum(np.array(truth_dataframe.iloc[0,:])))[1]
+            data_row = truth_dataframe.iloc[0,:]
+            acc = (np.array(data_row)/np.sum(np.array(data_row)))[1]
             #print(f"Accuracy: {acc:.2f}")
-            return acc
+            return acc,predicted
             
             
             
