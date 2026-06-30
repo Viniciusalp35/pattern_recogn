@@ -5,7 +5,7 @@ from modules.classification import KNN, centroidClassifier
 from modules.acquisition import Acquisition
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, recall_score, f1_score
 import time
 import os
 
@@ -42,7 +42,9 @@ def knn_mink(acc_cumulator,test_size=0.2,MINK_ARRAY = [0.5,2/3,1,3/2,2,5/2], EPO
             
             end_time = time.perf_counter()
             elapsed = end_time-start_time  
-            mink_variation.append(np.array([acc,elapsed]))
+            recall = recall_score(y_test,predicted,average='macro')
+            f1 = f1_score(y_test,predicted,average='macro')
+            mink_variation.append(np.array([acc,recall,f1,elapsed]))
         matrix_best = confusion_matrix(best[2],best[1])
         matrix_worst = confusion_matrix(worst[2],worst[1])
         fig, axs = plt.subplots(1,2,figsize=(12,8),sharey=True,sharex=True)
@@ -73,9 +75,9 @@ def knn_mink(acc_cumulator,test_size=0.2,MINK_ARRAY = [0.5,2/3,1,3/2,2,5/2], EPO
         acc_cumulator.append((f"{mink:.2f}",result))
     print(f"Results:\n",acc_cumulator)
 
-    ROW = [[acc[0],acc[1][0],acc[1][1]] for acc in acc_cumulator]
+    ROW = [[acc[0],*acc[1]] for acc in acc_cumulator]
 
-    df = pd.DataFrame(data=ROW, columns=['m','accuracy','time'])
+    df = pd.DataFrame(data=ROW, columns=['m','accuracy','recall','f1-score','time'])
     df.to_csv(f"results/Acc_Time_results/mink_acc_time_{t_size:.0f}_{train_size:.0f}.csv",index=False)
 
     print("------- TOTAL TIME --------")
@@ -112,7 +114,9 @@ def CentroidClassifier(method='classic',acc_cumulator = acc_acumulator,test_size
             
             end_time = time.perf_counter()
             elapsed = end_time-start_time  
-            test_size_variation.append(np.array([acc,elapsed]))
+            recall = recall_score(y_test,predicted,average='macro')
+            f1 = f1_score(y_test,predicted,average='macro')
+            test_size_variation.append(np.array([acc,recall,f1,elapsed]))
         matrix_best = confusion_matrix(best[2],best[1])
         matrix_worst = confusion_matrix(worst[2],worst[1])
         fig, axs = plt.subplots(1,2,figsize=(12,8),sharey=True,sharex=True)
@@ -143,9 +147,9 @@ def CentroidClassifier(method='classic',acc_cumulator = acc_acumulator,test_size
         acc_cumulator.append((f"{t_size}%",result))
     print(f"Results:\n",acc_cumulator)
 
-    ROW = [[acc[0],acc[1][0],acc[1][1]] for acc in acc_cumulator]
+    ROW = [[acc[0],*acc[1]] for acc in acc_cumulator]
 
-    df = pd.DataFrame(data=ROW, columns=['test_size','accuracy','time'])
+    df = pd.DataFrame(data=ROW, columns=['test_size','accuracy','recall','f1-score','time'])
     df.to_csv(f"results/Acc_Time_results/centroid_{method}.csv",index=False)
 
     print("------- TOTAL TIME --------")
@@ -156,4 +160,5 @@ def CentroidClassifier(method='classic',acc_cumulator = acc_acumulator,test_size
 CentroidClassifier()
 acc_acumulator2=[]
 CentroidClassifier(acc_cumulator=acc_acumulator2,method='outlier robust')
+CentroidClassifier('mahalo')
 

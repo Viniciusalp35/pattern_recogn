@@ -18,6 +18,33 @@ class Classifier:
         diff = np.abs(x_test[:,np.newaxis,:]-x_train[np.newaxis,:,:])
         return np.sum(diff**m,axis=2) ** (1/m)
     
+    @classmethod
+    def Mahalonobis_distance(cls,df_train:np.ndarray, x_test:np.ndarray):
+        test = df_train.groupby('Class').apply(lambda x: x.cov(numeric_only=True))
+        centroids = df_train.groupby("Class").mean()
+        covariances_by_class = {name: np.asarray(cov) for name, cov in test.groupby(level=0)}
+        classes_list = list(covariances_by_class.keys())
+
+        distancias_lista = []
+
+        for c in covariances_by_class.keys():
+            q_dif = np.asarray(x_test - np.asarray(centroids.loc[c]))
+            p_inv = np.linalg.pinv(covariances_by_class[c])
+            Q = np.sum((q_dif@p_inv) * (q_dif),axis=1)
+            distancias_lista.append(Q)
+        
+        matriz_distancias = np.column_stack(distancias_lista)
+
+        indices_vencedores = np.argmin(matriz_distancias, axis=1)
+
+        classes_array = np.array(classes_list)
+        predicted_classes = classes_array[indices_vencedores]
+
+        return predicted_classes
+
+            
+
+    
 class KNN:
     def __init__(self,k:int=3,m:int=1):
         self.k = k
@@ -90,11 +117,9 @@ class centroidClassifier:
             self.centroids = self.df_x.groupby('Class').median()
         
         self.centroids = self.centroids.loc[self.classes].values
-        #print(self.centroids)
     
     def _min_distance(self,x_test,y_test):
         distances = Classifier.Minkowski_distance(np.asarray(self.centroids),np.asarray(x_test),0.5)
-        min_distances = np.min(distances,axis=1)
         closest_class_index = np.argmin(distances,axis=1)
         predicted = np.array(self.classes)[closest_class_index]
         if isinstance(y_test,np.ndarray) and y_test.shape[0] > 0:
@@ -105,6 +130,17 @@ class centroidClassifier:
             #print(f"Accuracy: {acc:.2f}")
             return acc,predicted
     def predict(self,x_test:np.ndarray,y_test:np.ndarray):
+        if self.method == 'mahalo':
+            predicted = Classifier.Mahalonobis_distance(self.df_x,x_test)
+            y_test = np.array(y_test)
+            if isinstance(y_test,np.ndarray) and y_test.shape[0] > 0:
+                y_test = np.array(y_test)
+                truth_dataframe = KNN._comparator(predicted,y_test)
+                data_row = truth_dataframe.iloc[0,:]
+                acc = (np.array(data_row)/np.sum(np.array(data_row)))[1]
+                print(f"Accuracy: {acc:.2f}")
+                return acc,predicted
+            return
         return self._min_distance(x_test,y_test)
         
             
@@ -124,8 +160,9 @@ if __name__ == "__main__":
         'Class': ['A', 'A', 'A', 'B', 'B', 'B', 'C', 'C', 'C', 'C']
     }
    df = pd.DataFrame(dados)
-   cc = centroidClassifier()
-   cc.fit(pd.DataFrame(df))
-   cc.predict(df)
+   print("df",df)
+   cc = centroidClassifier('mahalo')
+   cc.fit(df.iloc[:,:-1],df.iloc[:,-1])
+   cc.predict(df.iloc[:,:-1],df.iloc[:,-1])
    print(frequentes)
         
