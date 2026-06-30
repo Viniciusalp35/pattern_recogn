@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from scipy.stats import mode
+from sklearn.model_selection import train_test_split
 
 
 class Classifier:
@@ -69,6 +70,43 @@ class KNN:
             acc = (np.array(data_row)/np.sum(np.array(data_row)))[1]
             #print(f"Accuracy: {acc:.2f}")
             return acc,predicted
+        
+class centroidClassifier:
+    def __init__(self,method:str = 'classic'):
+        self.classes = []
+        self.centroids = []
+        self.method = method
+    
+    def fit(self,x_train:np.ndarray,y_train:np.ndarray):
+        """
+        Separa as classes sem balanceamento de classes.
+        """
+        self.classes = np.unique(y_train).tolist()
+        self.df_x = pd.DataFrame(x_train)
+        self.df_x['Class'] = np.array(y_train)
+        if self.method == 'classic':
+            self.centroids = self.df_x.groupby('Class').mean()
+        else:
+            self.centroids = self.df_x.groupby('Class').median()
+        
+        self.centroids = self.centroids.loc[self.classes].values
+        #print(self.centroids)
+    
+    def _min_distance(self,x_test,y_test):
+        distances = Classifier.Minkowski_distance(np.asarray(self.centroids),np.asarray(x_test),0.5)
+        min_distances = np.min(distances,axis=1)
+        closest_class_index = np.argmin(distances,axis=1)
+        predicted = np.array(self.classes)[closest_class_index]
+        if isinstance(y_test,np.ndarray) and y_test.shape[0] > 0:
+            y_test = np.array(y_test)
+            truth_dataframe = KNN._comparator(predicted,y_test)
+            data_row = truth_dataframe.iloc[0,:]
+            acc = (np.array(data_row)/np.sum(np.array(data_row)))[1]
+            #print(f"Accuracy: {acc:.2f}")
+            return acc,predicted
+    def predict(self,x_test:np.ndarray,y_test:np.ndarray):
+        return self._min_distance(x_test,y_test)
+        
             
             
             
@@ -79,6 +117,15 @@ class KNN:
 
 if __name__ == "__main__":
    frequentes = KNN._most_frequent(['banana','maça','arroz','banana'])
-
+   np.random.seed(42)
+   dados = {
+        'feature_1': np.random.rand(10),
+        'feature_2': np.random.rand(10),
+        'Class': ['A', 'A', 'A', 'B', 'B', 'B', 'C', 'C', 'C', 'C']
+    }
+   df = pd.DataFrame(dados)
+   cc = centroidClassifier()
+   cc.fit(pd.DataFrame(df))
+   cc.predict(df)
    print(frequentes)
         
