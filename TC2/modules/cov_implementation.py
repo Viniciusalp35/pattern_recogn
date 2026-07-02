@@ -1,12 +1,12 @@
 import numpy as np
 import pandas as pd
-from Loader import Loader
+from modules.Loader import Loader
 import time
 
 def ref_matrix(data):
     t_start = time.perf_counter()
     m,n = data.shape
-    C = np.cov(data,rowvar=False)
+    C = np.cov(data,rowvar=False,ddof=0)
     #print("--------- REF MATRIX ---------")
     #print(f"Numero de features: {n}, shape da matriz: {C.shape}, matriz:\n {C}\nvariances:{np.var(data,axis=0)} ")
     t_end = time.perf_counter()
@@ -50,7 +50,7 @@ def cov_3(data:np.ndarray):
     m,n = data.shape
     media = np.mean(data,axis=0)
     R = np.zeros((n,n))
-    for i in range(m):
+    for i in range(m): # percorre as linhas
         R += np.outer(data[i,:],data[i,:])
     C = R/m - np.outer(media,media)
     C = (C+C.T)/2 #SIMETRIA FLOAT
