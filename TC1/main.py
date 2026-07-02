@@ -34,7 +34,7 @@ def knn_mink(acc_cumulator,test_size=0.2,MINK_ARRAY = [0.5,2/3,1,3/2,2,5/2], EPO
             x_train, x_test, y_train, y_test = train_test_split(data.iloc[:,:-1],data.iloc[:,-1],test_size=test_size, stratify=data.iloc[:,-1])
 
             knn.fit(x_train,y_train)
-            acc,predicted = knn.predict(x_test,np.array(y_test))
+            acc,predicted = knn.predict(x_test,np.array(y_test),mink)
             if acc > best[0]:
                 best[0] = acc; best[1] = predicted; best[2] = y_test
             elif acc < worst[0]:
