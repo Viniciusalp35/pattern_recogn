@@ -19,7 +19,8 @@ class Classifier:
         return np.sum(diff**m,axis=2) ** (1/m)
     
     @classmethod
-    def Mahalonobis_distance(cls,df_train:np.ndarray, x_test:np.ndarray):
+    def Mahalonobis_distance(cls,df_train:pd.DataFrame, x_test:np.ndarray):
+        m,n = np.asarray(df_train.iloc[:,:-1]).shape
         test = df_train.groupby('Class').apply(lambda x: x.cov(numeric_only=True))
         centroids = df_train.groupby("Class").mean()
         covariances_by_class = {name: np.asarray(cov) for name, cov in test.groupby(level=0)}
@@ -30,8 +31,21 @@ class Classifier:
         for c in covariances_by_class.keys():
             q_dif = np.asarray(x_test - np.asarray(centroids.loc[c]))
             p_inv = np.linalg.pinv(covariances_by_class[c])
+
+            #Calculo da distância de mahalanobis quadrática para a classe c
             Q = np.sum((q_dif@p_inv) * (q_dif),axis=1)
-            distancias_lista.append(Q)
+            #Calculo dos fatores de classes desbalanceadas
+            #Score = -0.5(Q + ln(|Ci|)) + ln(fi)
+            #Distancia geral = -2 * Score
+            det_C = np.linalg.det(covariances_by_class[c])
+            ln_det_C = np.log(det_C)
+            #Calculo de fi:
+            qtd_classe = np.sum(np.asarray(df_train['Class']) == c) 
+            prior = qtd_classe / m
+            ln_prior = np.log(prior)
+            #Calculo da distância geral
+            distancia_geral = (Q + ln_det_C) + -2*ln_prior
+            distancias_lista.append(distancia_geral)
         
         matriz_distancias = np.column_stack(distancias_lista)
 
