@@ -144,7 +144,7 @@ class centroidClassifier:
             #print(f"Accuracy: {acc:.2f}")
             return acc,predicted
     def predict(self,x_test:np.ndarray,y_test:np.ndarray):
-        if self.method == 'mahalo':
+        if self.method == 'mahala':
             predicted = Classifier.Mahalonobis_distance(self.df_x,x_test)
             y_test = np.array(y_test)
             if isinstance(y_test,np.ndarray) and y_test.shape[0] > 0:
@@ -152,7 +152,6 @@ class centroidClassifier:
                 truth_dataframe = KNN._comparator(predicted,y_test)
                 data_row = truth_dataframe.iloc[0,:]
                 acc = (np.array(data_row)/np.sum(np.array(data_row)))[1]
-                print(f"Accuracy: {acc:.2f}")
                 return acc,predicted
             return
         return self._min_distance(x_test,y_test)
