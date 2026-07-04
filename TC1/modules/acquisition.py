@@ -14,6 +14,7 @@ class Acquisition:
     def describe_dataset(self,print_on_terminal=True):
         metrics = ['count','mean','var','skew','kurt']
         statistical_description = self.df_raw.groupby('Class').agg(metrics)
+        statistical_description.to_csv("results/statistical_description.csv")
         if print_on_terminal:
             print("----------- DATA DESCRIPTION -------------")
             print("NUMBER OF CLASSES:",self.df_raw['Class'].unique())
@@ -82,7 +83,7 @@ class Acquisition:
 
     def routine(self):
         self.describe_dataset()
-        self.plotter()
+        #self.plotter()
 if __name__ == "__main__":
     Ac_obj = Acquisition()
     print(Ac_obj.df_raw, "\n\n\n")
