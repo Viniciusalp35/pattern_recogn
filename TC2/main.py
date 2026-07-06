@@ -29,7 +29,7 @@ def time_comparator(data:np.ndarray):
     for i,cov in enumerate(covs):
         for _ in range(100):
             time_array.append((f"cov_{i+1}",cov(data)[1]))
-    df = pd.DataFrame(data = time_array, columns=["cov_function",'time_(ms)'])
+    df = pd.DataFrame(data = time_array, columns=["cov_function",'time_(s)'])
     print(f"MEDIA PARA AS EXECUÇÕES - {n} readings \n",
           df.groupby('cov_function').mean()
           )
@@ -39,13 +39,13 @@ def time_comparator(data:np.ndarray):
     fig, axs = plt.subplots(2,2,figsize=(12,8))
     fig.suptitle(f"Comparison plots for {n} readings")
     #PLOT RAPIDO
-    sns.violinplot(df_fast,y='cov_function',x='time_(ms)',ax=axs[0,0])
-    sns.histplot(df_fast,hue='cov_function',x='time_(ms)',ax=axs[0,1])
+    sns.violinplot(df_fast,y='cov_function',x='time_(s)',ax=axs[0,0])
+    sns.histplot(df_fast,hue='cov_function',x='time_(s)',ax=axs[0,1])
     axs[0,0].set_title('Violin Plot')
     axs[0,1].set_title("Histogram Plot")
     #PLOT LENTO
-    sns.violinplot(df_slow,y='cov_function',x='time_(ms)',ax=axs[1,0])
-    sns.histplot(df_slow,hue="cov_function",x='time_(ms)',ax=axs[1,1])
+    sns.violinplot(df_slow,y='cov_function',x='time_(s)',ax=axs[1,0])
+    sns.histplot(df_slow,hue="cov_function",x='time_(s)',ax=axs[1,1])
     plt.savefig(f"./results/time_comparison_{n}_readings.png",dpi=300)
 
 
