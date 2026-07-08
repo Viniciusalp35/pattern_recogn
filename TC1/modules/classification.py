@@ -18,6 +18,24 @@ class Classifier:
         diff = np.abs(x_test[:,np.newaxis,:]-x_train[np.newaxis,:,:])
         return np.sum(diff**m,axis=2) ** (1/m)
     
+    @staticmethod
+    def Cosine_Distance(centroids: np.ndarray, x_test: np.ndarray) -> np.ndarray:
+        # Calculando a norma
+        test_norm = np.linalg.norm(x_test, axis=1, keepdims=True)
+        cent_norm = np.linalg.norm(centroids, axis=1, keepdims=True)
+    
+        # Impedir divisão por zero
+        test_norm[test_norm == 0] = 1e-10
+        cent_norm[cent_norm == 0] = 1e-10
+        # Dividindo os vetores pela sua norma gerando vetores unitários
+        x_test_normalized = x_test / test_norm
+        centroids_normalized = centroids / cent_norm
+        #Calcula o produto escalar entre os centroides e o vetor para dar a maior correlação
+        similarities = np.dot(x_test_normalized, centroids_normalized.T)
+        
+        # Inverte a desigualdade para ser melhor incluido no script
+        return 1 - similarities
+    
     @classmethod
     def Mahalonobis_distance(cls,df_train:pd.DataFrame, x_test:np.ndarray):
         m,n = np.asarray(df_train.iloc[:,:-1]).shape
@@ -60,7 +78,7 @@ class Classifier:
 
     
 class KNN:
-    def __init__(self,k:int=3,m:int=1):
+    def __init__(self,k:int=1,m:int=1):
         self.k = k
         self.m = m
         self.x_train = None
@@ -113,9 +131,10 @@ class KNN:
             return acc,predicted
         
 class centroidClassifier:
-    def __init__(self,method:str = 'classic'):
+    def __init__(self,m,method:str = 'classic'):
         self.classes = []
         self.centroids = []
+        self.m = m
         self.method = method
     
     def fit(self,x_train:np.ndarray,y_train:np.ndarray):
@@ -125,7 +144,7 @@ class centroidClassifier:
         self.classes = np.unique(y_train).tolist()
         self.df_x = pd.DataFrame(x_train)
         self.df_x['Class'] = np.array(y_train)
-        if self.method == 'classic':
+        if self.method == 'classic'or self.method=='correlation':
             self.centroids = self.df_x.groupby('Class').mean()
         else:
             self.centroids = self.df_x.groupby('Class').median()
@@ -133,7 +152,10 @@ class centroidClassifier:
         self.centroids = self.centroids.loc[self.classes].values
     
     def _min_distance(self,x_test,y_test):
-        distances = Classifier.Minkowski_distance(np.asarray(self.centroids),np.asarray(x_test),0.5)
+        if self.method == "correlation":
+            distances = Classifier.Cosine_Distance(np.asarray(self.centroids),np.asarray(x_test))
+        else:
+            distances = Classifier.Minkowski_distance(np.asarray(self.centroids),np.asarray(x_test),self.m)
         closest_class_index = np.argmin(distances,axis=1)
         predicted = np.array(self.classes)[closest_class_index]
         if isinstance(y_test,np.ndarray) and y_test.shape[0] > 0:
