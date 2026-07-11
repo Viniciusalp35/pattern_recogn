@@ -33,7 +33,9 @@ def time_comparator(data:np.ndarray):
     print(f"MEDIA PARA AS EXECUÇÕES - {n} readings \n",
           df.groupby('cov_function').mean()
           )
-    df.groupby('cov_function').mean().to_csv(f"./results/time_comparison_{n}_readings.csv")
+    data_mean_std = df.groupby('cov_function')['time_(s)'].agg(['mean','std']).reset_index()
+    data_mean_std.columns = ['cov_function', 'time_(s) mean', 'std']
+    data_mean_std.to_csv(f"./results/time_comparison_{n}_readings.csv")
     df_fast = df[df['cov_function'].isin(['cov_2','cov_4'])]
     df_slow = df[df['cov_function'].isin(['cov_1','cov_3'])]
     fig, axs = plt.subplots(2,2,figsize=(12,8))
